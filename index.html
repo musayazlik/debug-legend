@@ -1,0 +1,96 @@
+<!doctype html>
+<html>
+<head>
+<meta charset=utf8>
+<meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Debug Destanı</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="game" aria-label="Oyun alanı"></canvas>
+
+<div class="util" id="util">
+  <button class="ubtn" id="bMusic" aria-label="Müzik" aria-pressed="true">
+    <svg class="on" viewBox="0 0 16 16" fill="currentColor"><path d="M6 2h8v9h-1v1h-2v-1h-1V9h1V8h2V4H7v8H6v1H4v-1H3v-2h1V9h2z"/></svg>
+    <svg class="off" viewBox="0 0 16 16" fill="currentColor"><path d="M6 2h8v9h-1v1h-2v-1h-1V9h1V8h2V4H7v8H6v1H4v-1H3v-2h1V9h2z" opacity=".4"/><path d="M1 1h2v1h1v1h1v1h1v1h1v1h1v1h1v1h1v1h1v1h1v1h1v1h1v1h1v2h-2v-1h-1v-1h-1v-1h-1v-1h-1v-1H9V9H8V8H7V7H6V6H5V5H4V4H3V3H2V2H1z"/></svg>
+  </button>
+  <button class="ubtn" id="bSound" aria-label="Ses" aria-pressed="true">
+    <svg class="on" viewBox="0 0 16 16" fill="currentColor"><path d="M2 6h3l4-3v10l-4-3H2z"/><path d="M11 5h1v6h-1zM13 3h1v10h-1z"/></svg>
+    <svg class="off" viewBox="0 0 16 16" fill="currentColor"><path d="M2 6h3l4-3v10l-4-3H2z"/><path d="M11 6h1v1h1V6h1v1h-1v1h1v1h-1v1h1v1h-1v-1h-1v1h-1v-1h1V9h-1V8h1V7h-1z"/></svg>
+  </button>
+  <button class="ubtn" id="bPause" aria-label="Duraklat">
+    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 3h3v10H4zM9 3h3v10H9z"/></svg>
+  </button>
+</div>
+
+<div class="toast" id="toast" role="status" hidden></div>
+<div class="pad" id="pad" hidden>
+  <div class="string" id="s1"></div><div class="string" id="s2"></div>
+  <div class="pocketline" id="pl"></div>
+  <button class="ctl" id="cL" data-k="left" aria-label="Sola"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M10 2h2v12h-2v-2H8v-2H6V9H4V7h2V6h2V4h2z"/></svg></button>
+  <button class="ctl" id="cR" data-k="right" aria-label="Sağa"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 2h2v2h2v2h2v1h2v2h-2v1H8v2H6v2H4z"/></svg></button>
+  <button class="ctl fire off" id="cF" data-k="fire" aria-label="Ateş et"><span>ATEŞ</span></button>
+  <button class="ctl jump" id="cJ" data-k="jump" aria-label="Zıpla"><span>ZIPLA</span></button>
+  <div class="hint" id="hint">Uzun bas, daha yükseğe zıpla</div>
+</div>
+
+<div class="screen" id="screen" hidden>
+  <div class="card console-mode">
+    <div class="winbar">
+      <span class="wdots" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span class="wfile" aria-hidden="true">debug-destani.exe</span>
+      <span class="wstat" aria-hidden="true"><i></i>PROD: DOWN</span>
+      <span class="wutils">
+        <button class="wubtn" id="wMusic" type="button" aria-label="Müzik" aria-pressed="true">
+          <svg class="on" viewBox="0 0 16 16" fill="currentColor"><path d="M6 2h8v9h-1v1h-2v-1h-1V9h1V8h2V4H7v8H6v1H4v-1H3v-2h1V9h2z"/></svg>
+          <svg class="off" viewBox="0 0 16 16" fill="currentColor"><path d="M6 2h8v9h-1v1h-2v-1h-1V9h1V8h2V4H7v8H6v1H4v-1H3v-2h1V9h2z" opacity=".4"/><path d="M1 1h2v1h1v1h1v1h1v1h1v1h1v1h1v1h1v1h1v1h1v1h1v1h1v1h1v2h-2v-1h-1v-1h-1v-1h-1v-1h-1v-1H9V9H8V8H7V7H6V6H5V5H4V4H3V3H2V2H1z"/></svg>
+        </button>
+        <button class="wubtn" id="wSound" type="button" aria-label="Ses" aria-pressed="true">
+          <svg class="on" viewBox="0 0 16 16" fill="currentColor"><path d="M2 6h3l4-3v10l-4-3H2z"/><path d="M11 5h1v6h-1zM13 3h1v10h-1z"/></svg>
+          <svg class="off" viewBox="0 0 16 16" fill="currentColor"><path d="M2 6h3l4-3v10l-4-3H2z"/><path d="M11 6h1v1h1V6h1v1h-1v1h1v1h-1v1h1v1h-1v-1h-1v1h-1v-1h1V9h-1V8h1V7h-1z"/></svg>
+        </button>
+      </span>
+    </div>
+    <div class="avs">
+      <canvas class="scene" id="sScene" hidden></canvas>
+      <div class="avstack">
+        <div class="bubble" id="sBubble" hidden>
+          <svg viewBox="0 0 200 100" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M30 84C12 84 6 62 22 51C14 30 44 15 64 30C74 6 124 4 134 28C156 12 188 24 180 46C200 52 196 80 172 84L124 84L104 99L86 84Z" vector-effect="non-scaling-stroke"/></svg>
+          <span id="sBubbleTxt"></span>
+        </div>
+        <img class="av" id="sAv" alt=""><img class="av2" id="sAv2" alt="" hidden>
+      </div>
+    </div>
+    <div class="txt">
+      <p class="kicker" id="sKick"></p>
+      <h1 id="sTitle"></h1>
+      <p class="lead" id="sLead"></p>
+      <p class="note" id="sNote" hidden></p>
+      <div class="legend" id="sLegend"></div>
+      <dl class="stats" id="sStats"></dl>
+      <div class="actionrow">
+        <form class="namefield" id="sForm" hidden novalidate><label for="pName">Adın</label><input id="pName" name="pName" maxlength="14" autocomplete="nickname" placeholder="Örn. Musa" enterkeyhint="go"><p class="err" id="sErr" hidden></p></form>
+        <div class="btns" id="sBtns"></div>
+      </div>
+      <p class="keys" id="sKeys"></p>
+      <p class="hire" id="sHire" hidden><span id="sHireTxt"></span><span class="mail" id="sMail">hello@musayazlik.com</span><button type="button" id="bCopy">Kopyala</button></p>
+      <div class="social" id="sSocial" hidden>
+        <a href="https://www.instagram.com/musa_yazlik/" target="_blank" rel="noopener noreferrer" aria-label="Instagram: musa_yazlik (yeni sekmede açılır)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="2" y="2" width="12" height="12" rx="3.5"/><circle cx="8" cy="8" r="2.8"/><circle cx="11.7" cy="4.3" r=".7" fill="currentColor" stroke="none"/></svg><span>Instagram</span></a>
+        <a href="https://x.com/musayazlik" target="_blank" rel="noopener noreferrer" aria-label="X: musayazlik (yeni sekmede açılır)"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M12.2 1.5h2.3L9.5 7.2l5.9 7.3h-4.6L7.2 10l-4.1 4.5H.8l5.4-6L.6 1.5h4.7l3.3 4.1zm-.8 11.7h1.3L4.7 2.8H3.3z"/></svg><span>X</span></a>
+        <a href="https://www.linkedin.com/in/musayazlik/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn: musayazlik (yeni sekmede açılır)"><svg viewBox="0 0 16 16" fill="currentColor"><path fill-rule="evenodd" d="M1.5 1.5h13v13h-13zM4 6.3v6.2h2V6.3zm1-3.1a1.1 1.1 0 1 0 0 2.2 1.1 1.1 0 0 0 0-2.2zM7.3 6.3v6.2h2V9.3c0-.9.4-1.4 1.1-1.4s1 .5 1 1.4v3.2h2V8.9c0-1.8-1-2.7-2.3-2.7-.9 0-1.5.4-1.8 1V6.3z"/></svg><span>LinkedIn</span></a>
+      </div>
+      <div class="lang" id="sLang" role="group"></div>
+    </div>
+    <div class="statusbar" aria-hidden="true">
+      <span id="sSys">SYS://TITLE</span><span id="sInput">INPUT: READY</span><span>5 LANG</span>
+    </div>
+  </div>
+</div>
+
+<script src="i18n.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

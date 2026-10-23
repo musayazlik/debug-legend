@@ -1,0 +1,800 @@
+/* Debug Destani - stiller (head icindeki kritik blok + ana blok, sira korundu) */
+
+:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}
+
+/* ---- ana stiller ---- */
+
+/* Layout: full-bleed canvas stage; on portrait phones the controller sits below it, styled as Musa's hoodie pocket */
+:root{
+  --ink:#1d1a2b;
+  --paper:#fff4e0;
+  --hoodie:#3b3742;
+  --hoodie-dk:#2b2831;
+  --accent:#ff7a45;
+  --teal:#2f8f8a;
+  --muted:#7a7287;
+  --display:"Pixelify Sans","Courier New",monospace;
+  --body:"VT323","Courier New",monospace;
+  color-scheme:dark;
+}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{
+  background:var(--ink);color:var(--paper);overflow:hidden;
+  touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;
+  font-family:var(--body);font-size:20px;
+}
+#game{position:fixed;left:0;top:0;display:block;image-rendering:pixelated;touch-action:none}
+
+.util{position:fixed;display:flex;gap:8px;z-index:12}
+.ubtn{
+  width:40px;height:40px;display:grid;place-items:center;padding:0;
+  background:rgba(29,26,43,.62);color:var(--paper);border:2px solid rgba(255,244,224,.55);
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+}
+.ubtn svg{width:18px;height:18px;display:block}
+.ubtn:focus-visible,.btn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.ubtn[aria-pressed="true"] .off{display:none}
+.ubtn[aria-pressed="false"] .on{display:none}
+.ubtn[aria-pressed="false"]{color:rgba(255,244,224,.5)}
+
+.pad{position:fixed;left:0;right:0;bottom:0;z-index:4;touch-action:none;-webkit-tap-highlight-color:transparent}
+.ctl{
+  position:absolute;display:grid;place-items:center;padding:0;cursor:pointer;
+  font-family:var(--display);font-weight:700;letter-spacing:.06em;color:var(--paper);
+  touch-action:none;-webkit-tap-highlight-color:transparent;transition:opacity .2s;
+}
+.ctl svg{width:42%;height:42%;display:block;pointer-events:none}
+.ctl span{pointer-events:none}
+.ctl.fire.off{opacity:.32}
+
+.pad.pocket{background:var(--hoodie);border-top:4px solid var(--ink);overflow:hidden}
+.pad.pocket::before{
+  content:"";position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,rgba(0,0,0,.07) 0 2px,transparent 2px 6px);
+  pointer-events:none;
+}
+.pad.pocket .string{position:absolute;top:0;width:6px;background:#8f8899;border:2px solid var(--ink);border-top:0;pointer-events:none}
+.pad.pocket .string::after{content:"";position:absolute;left:-3px;bottom:-10px;width:8px;height:10px;background:#5e5867;border:2px solid var(--ink)}
+.pad.pocket .pocketline{
+  position:absolute;border:3px dashed rgba(255,244,224,.16);border-bottom:0;pointer-events:none;
+  clip-path:polygon(14% 0,86% 0,100% 100%,0 100%);
+}
+.pad.pocket .ctl{
+  background:var(--hoodie-dk);border:3px solid var(--ink);
+  box-shadow:0 6px 0 var(--ink), inset 0 3px 0 rgba(255,255,255,.08);
+}
+.pad.pocket .ctl.jump{background:var(--accent);color:var(--ink);border-radius:50%;font-size:21px}
+.pad.pocket .ctl.fire{background:#6fd3c4;color:var(--ink);border-radius:50%;font-size:16px}
+.pad.pocket .ctl.on{transform:translateY(5px);box-shadow:0 1px 0 var(--ink), inset 0 3px 0 rgba(0,0,0,.15)}
+.pad.pocket .hint{position:absolute;left:0;right:0;text-align:center;color:rgba(255,244,224,.45);font-size:18px;pointer-events:none}
+
+.pad.over{top:0;pointer-events:none;background:none}
+.pad.over .ctl{pointer-events:auto;background:rgba(29,26,43,.38);border:2px solid rgba(255,244,224,.5);color:var(--paper)}
+.pad.over .ctl.jump{border-radius:50%;font-size:16px;background:rgba(255,122,69,.45)}
+.pad.over .ctl.fire{border-radius:50%;font-size:13px;background:rgba(111,211,196,.42)}
+.pad.over .ctl.on{background:rgba(255,244,224,.35)}
+.pad.over .string,.pad.over .pocketline,.pad.over .hint{display:none}
+
+.screen{
+  position:fixed;inset:0;z-index:10;display:grid;place-items:center;
+  background:rgba(29,26,43,.55);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-bottom,0px));
+  overflow-y:auto;
+}
+.card{
+  position:relative;width:100%;max-width:370px;background:var(--paper);color:var(--ink);
+  border:3px solid var(--ink);box-shadow:8px 8px 0 var(--ink);
+  padding:20px 20px 22px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;
+  animation:pop .28s steps(4) both;margin-top:72px;
+}
+@keyframes pop{from{transform:translateY(16px);opacity:0}to{transform:none;opacity:1}}
+.avs{display:flex;align-items:flex-end;justify-content:center;gap:4px;margin-top:-82px;margin-bottom:-4px;width:100%}
+.av{flex:0 0 auto;width:auto;height:170px;max-width:none;object-fit:contain;filter:drop-shadow(4px 4px 0 rgba(29,26,43,.35))}
+.av2{flex:0 0 auto;height:140px;width:auto;max-width:none;object-fit:contain;filter:drop-shadow(4px 4px 0 rgba(29,26,43,.35))}
+.av2.flip{transform:scaleX(-1)}
+
+/* konusma bulutu: avatarin basi ustunde, kartin disina tasabilir */
+.avs{position:relative}
+.bubble{
+  position:absolute;left:50%;bottom:calc(100% - 30px);z-index:2;
+  width:172px;min-height:64px;display:flex;align-items:center;justify-content:center;
+  padding:10px 16px 16px;transform:translateX(-50%) rotate(-2deg);
+  color:var(--ink);font-family:var(--display);font-weight:700;font-size:13px;line-height:1.08;
+  text-align:center;pointer-events:none;
+}
+.bubble svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;filter:drop-shadow(3px 3px 0 rgba(29,26,43,.3))}
+.bubble path{fill:#fff;stroke:var(--ink);stroke-width:3px;stroke-linejoin:round}
+.bubble span{position:relative;z-index:1}
+[dir="rtl"] .bubble{transform:translateX(-50%) rotate(2deg)}
+@media (max-width:759px){
+  .bubble{width:178px;min-height:50px;font-size:11.5px;padding:8px 14px 13px;bottom:calc(100% - 30px)}
+}
+@media (max-width:759px) and (max-height:700px){
+  .bubble{min-height:39px;bottom:calc(100% - 34px);transform:translateX(-50%)}
+  [dir="rtl"] .bubble{transform:translateX(-50%)}
+}
+.txt{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0;width:100%}
+.kicker{margin:0;font-family:var(--display);font-weight:500;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--teal)}
+.card h1{margin:0;font-family:var(--display);font-weight:700;font-size:30px;line-height:1.05;text-wrap:balance}
+.lead{margin:0;font-size:21px;line-height:1.1;color:#4a4458;max-width:31ch;text-wrap:pretty}
+.note{margin:4px 0 0;padding:10px 12px;background:#fff;border:2px dashed #b3a9c2;font-size:21px;line-height:1.1;color:var(--ink);transform:rotate(-1.5deg);max-width:30ch}
+.stats{display:grid;grid-template-columns:auto auto;gap:2px 16px;margin:6px 0 2px;font-size:22px}
+.stats:empty{display:none}
+.stats dt{text-align:start;color:#6b6578}
+.stats dd{margin:0;text-align:right;font-variant-numeric:tabular-nums;font-family:var(--display);font-size:17px;line-height:1.35}
+.btns{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:8px;width:100%}
+.btn{
+  font-family:var(--display);font-weight:700;font-size:17px;letter-spacing:.04em;
+  padding:12px 18px;min-width:130px;border:3px solid var(--ink);background:var(--paper);color:var(--ink);
+  box-shadow:4px 4px 0 var(--ink);cursor:pointer;
+}
+.btn.primary{background:var(--accent)}
+.btn:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ink)}
+.keys{margin:4px 0 0;font-size:18px;color:#6b6578;line-height:1.15;max-width:34ch}
+.keys:empty{display:none}
+.keys b{font-family:var(--display);font-weight:700;font-size:13px;color:var(--ink);border:2px solid var(--ink);padding:0 4px;margin:0 1px;background:#fff}
+.keys .nw{white-space:nowrap}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;justify-content:center;margin:4px 0 0;font-size:18px;color:#4a4458}
+.legend:empty{display:none}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend img{width:auto;height:18px;image-rendering:pixelated}
+
+.card.scene-mode{margin-top:0}
+.card.scene-mode .avs{display:none}
+.scene{display:block;width:100%;aspect-ratio:2/1;max-width:100%;border:3px solid var(--ink);image-rendering:pixelated;background:#3b3550}
+.namefield{display:flex;flex-direction:column;align-items:stretch;gap:4px;width:100%;max-width:260px;margin-top:6px;text-align:start}
+.namefield label{font-family:var(--display);font-weight:700;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:#6b6578}
+.namefield input{font-family:var(--display);font-weight:700;font-size:20px;padding:10px 12px;border:3px solid var(--ink);background:#fff;color:var(--ink);user-select:text;-webkit-user-select:text;box-shadow:inset 3px 3px 0 rgba(29,26,43,.12);border-radius:0}
+.namefield input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.err{margin:0;font-size:18px;color:#c0262e}
+.hire{margin:8px 0 0;padding-top:8px;border-top:2px dashed #d6ccc0;width:100%;font-size:18px;line-height:1.15;color:#6b6578;display:flex;flex-wrap:wrap;gap:4px 8px;justify-content:center;align-items:center}
+.hire .mail{font-family:var(--display);font-weight:700;font-size:15px;color:var(--teal);user-select:text;-webkit-user-select:text}
+.hire button{font-family:var(--display);font-weight:700;font-size:12px;padding:5px 9px;border:2px solid var(--ink);background:#fff;color:var(--ink);cursor:pointer}
+
+.social{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;width:100%;margin-top:6px}
+.social a{display:inline-flex;align-items:center;gap:6px;padding:7px 11px;border:2px solid var(--ink);background:#fff;color:var(--ink);font-family:var(--display);font-weight:700;font-size:13px;text-decoration:none;box-shadow:2px 2px 0 var(--ink)}
+.social a:hover{background:var(--accent)}
+.social a:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--ink)}
+.social a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.social svg{width:16px;height:16px;flex-shrink:0}
+
+.toast{position:fixed;left:50%;top:max(14px,env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:30;max-width:calc(100% - 32px);
+  background:var(--paper);color:var(--ink);border:3px solid var(--ink);box-shadow:5px 5px 0 var(--ink);padding:8px 14px;
+  font-family:var(--display);font-weight:700;font-size:15px;text-align:center;pointer-events:none;animation:pop .28s steps(4) both}
+.toast small{display:block;font-family:var(--body);font-weight:400;font-size:18px;color:#6b6578}
+
+@media (max-height:520px) and (min-width:560px),
+       (max-height:700px) and (min-width:560px) and (max-width:759px){
+  .social{justify-content:flex-start}
+  .scene{width:46%;flex-shrink:0}
+  .hire{justify-content:flex-start}
+  .namefield{max-width:none}
+  .card{max-width:600px;flex-direction:row;text-align:start;align-items:center;gap:16px;padding:16px 20px;margin-top:0}
+  .avs{margin:0;flex-shrink:0;width:auto}
+  .av{height:150px}
+  .av2{height:120px}
+  .txt{align-items:flex-start}
+  .btns,.legend{justify-content:flex-start}
+  .card h1{font-size:26px}
+  .bubble{display:none}
+}
+@media (prefers-reduced-motion:reduce){.card{animation:none}}
+
+/* ---------- dil secici ---------- */
+.lang{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:10px}
+.lang button{
+  font-family:var(--display);font-weight:700;font-size:12px;letter-spacing:.05em;
+  padding:5px 9px;border:2px solid var(--ink);background:#fff;color:var(--ink);
+  box-shadow:2px 2px 0 var(--ink);cursor:pointer;-webkit-tap-highlight-color:transparent;
+}
+.lang button[aria-pressed="true"]{background:var(--teal,#2ec4b6);color:#fff}
+.lang button:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--ink)}
+.lang button:focus-visible{outline:3px solid var(--accent,#ff7a45);outline-offset:2px}
+[dir="rtl"] .namefield{text-align:right}
+[dir="rtl"] .stats dt{text-align:right}
+[dir="rtl"] .stats dd{text-align:start}
+@media (max-height:520px) and (min-width:560px){.lang{justify-content:flex-start}}
+
+/* ---------- menu ekranlari: kaydirmasiz yerlesim ---------- */
+@media (max-height:740px), (max-width:759px) and (max-height:900px){
+  .card{padding:16px 18px 18px;gap:4px}
+  .card h1{font-size:26px}
+  .lead{font-size:19px;line-height:1.1}
+  .note{font-size:19px}
+  .av{height:150px}
+  .av2{height:125px}
+  .avs{margin-top:-74px;margin-bottom:-4px}
+  .namefield{margin-top:2px}
+  .namefield input{font-size:18px;padding:8px 10px}
+  .stats{font-size:19px;gap:0 14px;margin:3px 0 0}
+  .stats dd{font-size:15px}
+  .btns{margin-top:4px}
+  .btn{font-size:15px;padding:9px 14px}
+  .keys{font-size:16px;margin-top:2px}
+  .legend{font-size:16px;gap:3px 10px}
+  .hire{font-size:15px;line-height:1.1;margin-top:4px;padding-top:5px}
+  .hire .mail{font-size:13px}
+  .hire button{font-size:10px;padding:3px 6px}
+  .social{margin-top:3px}
+  .social a{padding:5px 9px;font-size:12px}
+  .social svg{width:14px;height:14px}
+  .lang{margin-top:4px}
+  .lang button{font-size:11px;padding:4px 7px}
+}
+
+/* dar ekranlarda kart cercevesi viewport icinde kalsin */
+@media (max-width:759px){.card{box-sizing:border-box}}
+
+/* secim ekrani: butonlar iki sutun */
+.card.select-mode .btns{display:grid;grid-template-columns:1fr 1fr;gap:6px;width:100%}
+.card.select-mode .btn{min-width:0;font-size:13px;padding:8px 7px;text-align:start;box-shadow:2px 2px 0 var(--ink)}
+
+@media (min-width:760px){
+  .card.enter-mode,.card.select-mode,.card.pause-mode,.card.social-mode:not(.enter-mode){
+    box-sizing:border-box;width:100%;flex-direction:row;align-items:center;text-align:start;margin-top:0;padding:18px 24px;
+  }
+  .card.enter-mode,.card.social-mode:not(.enter-mode){max-width:780px;gap:26px}
+  .card.select-mode{max-width:720px;gap:22px}
+  .card.pause-mode{max-width:660px;gap:24px}
+
+  .card.enter-mode .avs,.card.select-mode .avs,.card.pause-mode .avs,.card.social-mode:not(.enter-mode) .avs{
+    margin:0;flex:0 0 auto;width:auto;
+  }
+  .card.enter-mode .av,.card.social-mode:not(.enter-mode) .av{height:240px}
+  .card.select-mode .av,.card.pause-mode .av{height:200px}
+  .card.enter-mode .av2,.card.social-mode:not(.enter-mode) .av2{height:190px}
+  .card.select-mode .av2,.card.pause-mode .av2{height:160px}
+
+  .card.enter-mode .txt,.card.select-mode .txt,.card.pause-mode .txt,.card.social-mode:not(.enter-mode) .txt{
+    align-items:flex-start;width:auto;flex:1 1 auto;min-width:0;gap:5px;
+  }
+  .card.enter-mode h1,.card.select-mode h1,.card.pause-mode h1,.card.social-mode:not(.enter-mode) h1{font-size:28px}
+  .card.enter-mode .lead,.card.pause-mode .lead,.card.social-mode:not(.enter-mode) .lead{text-align:start;max-width:46ch;font-size:18px}
+  .card.select-mode .lead{text-align:start;max-width:40ch;font-size:17px}
+
+  .card.enter-mode .namefield{max-width:420px;width:100%;margin-top:2px}
+  .card.enter-mode .namefield input{font-size:17px;padding:8px 10px}
+  .card.enter-mode .namefield label{font-size:12px}
+
+  .card.enter-mode .stats,.card.social-mode:not(.enter-mode) .stats{width:100%;grid-template-columns:auto 1fr;gap:0 18px;margin:2px 0 0;font-size:18px}
+  .card.enter-mode .stats dd,.card.social-mode:not(.enter-mode) .stats dd{font-size:15px}
+
+  .card.enter-mode .btns,.card.select-mode .btns,.card.pause-mode .btns,.card.social-mode:not(.enter-mode) .btns{
+    width:100%;justify-content:flex-start;margin-top:5px;
+  }
+  .card.enter-mode .btn,.card.select-mode .btn,.card.pause-mode .btn,.card.social-mode:not(.enter-mode) .btn{
+    font-size:15px;padding:9px 14px;min-width:112px;
+  }
+  .card.enter-mode .keys,.card.pause-mode .keys{font-size:16px;text-align:start;max-width:48ch;margin-top:2px}
+  .card.enter-mode .legend,.card.pause-mode .legend{justify-content:flex-start}
+  .card.enter-mode .hire,.card.pause-mode .hire,.card.social-mode:not(.enter-mode) .hire{
+    justify-content:flex-start;text-align:start;font-size:15px;line-height:1.12;margin-top:6px;padding-top:6px;
+  }
+  .card.enter-mode .hire .mail,.card.pause-mode .hire .mail,.card.social-mode:not(.enter-mode) .hire .mail{font-size:14px}
+  .card.enter-mode .social,.card.pause-mode .social,.card.social-mode:not(.enter-mode) .social{justify-content:flex-start;margin-top:3px}
+  .card.enter-mode .lang,.card.select-mode .lang,.card.pause-mode .lang,.card.social-mode:not(.enter-mode) .lang{justify-content:flex-start;margin-top:3px}
+
+  .card.select-mode .btns{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:5px}
+  .card.select-mode .btn{min-width:0;text-align:start;font-size:14px;padding:8px 9px;box-shadow:3px 3px 0 var(--ink)}
+}
+
+/* kisa telefon ekranlari: baslik ve kazanma ekrani tasmasin */
+@media (max-width:759px) and (max-height:700px){
+  .card{padding:14px 16px 16px;gap:3px}
+  .lead{font-size:17px;line-height:1.06}
+  .namefield input{font-size:17px;padding:7px 9px}
+  .keys{font-size:15px;line-height:1.1}
+  .hire{font-size:13px;line-height:1.08;gap:3px 6px;margin-top:3px;padding-top:4px}
+  .hire .mail{font-size:12px}
+  .hire button{font-size:9px;padding:2px 5px}
+  .social{gap:6px;margin-top:2px}
+  .social a{padding:4px 7px;font-size:11px}
+  .social svg{width:13px;height:13px}
+  .lang{gap:3px;margin-top:2px}
+  .lang button{font-size:10px;padding:3px 5px}
+  .btns{gap:8px}
+  .btn{font-size:14px;padding:8px 12px}
+}
+
+/* cok kisa pencereler: baslangic ekrani tamamen sigsin */
+@media (max-height:520px){
+  .card.enter-mode{padding-top:12px;padding-bottom:12px}
+  .card.enter-mode .av{height:130px}
+  .card.enter-mode .avs{margin-top:-64px;margin-bottom:-4px}
+  .card.enter-mode .lead{font-size:15px;line-height:1.05}
+  .card.enter-mode .namefield{margin-top:1px}
+  .card.enter-mode .namefield input{font-size:16px;padding:6px 9px}
+  .card.enter-mode .keys{font-size:13px;line-height:1.05;margin-top:1px}
+  .card.enter-mode .hire{font-size:12px;line-height:1.05;margin-top:2px;padding-top:3px}
+  .card.enter-mode .hire .mail{font-size:11px}
+  .card.enter-mode .hire button{font-size:9px;padding:2px 5px}
+  .card.enter-mode .social{margin-top:1px}
+  .card.enter-mode .lang{margin-top:1px}
+}
+
+/* ============================================================
+   TITLE / MENU CONSOLE
+   The title is framed as a little debug window: a cream operator
+   bay on the left, a live terminal on the right, and a hard
+   console frame around both. Other menu screens keep the quieter
+   card language.
+   ============================================================ */
+
+:root{
+  --console:#0d1019;
+  --console-2:#151a29;
+  --console-3:#1f2639;
+  --console-line:#2a3248;
+  --console-muted:#9aa4c0;
+  --phosphor:#7ef0c8;
+  --alert:#ff5b68;
+  --amber:#ffd37d;
+}
+
+.avstack{position:relative;display:flex;align-items:flex-end;justify-content:center;gap:4px}
+.winbar,.statusbar{display:none}
+.actionrow{display:contents}
+
+.card.console-mode{
+  box-sizing:border-box;display:grid;
+  grid-template-columns:minmax(250px,.82fr) minmax(0,1.18fr);
+  grid-template-rows:36px auto 26px;
+  grid-template-areas:"win win" "stage editor" "status status";
+  width:100%;max-width:900px;margin-top:0;padding:0;gap:0;
+  background:var(--console);color:var(--paper);text-align:start;align-items:stretch;
+  border:3px solid var(--paper);
+  box-shadow:10px 10px 0 rgba(0,0,0,.55),0 0 0 3px rgba(5,7,13,.82);
+  overflow:visible;
+}
+
+.card.console-mode .winbar{
+  grid-area:win;display:flex;align-items:center;gap:8px;min-width:0;
+  padding:0 12px;background:var(--console-2);border-bottom:2px solid var(--console-line);
+  direction:ltr;
+}
+.wdots{display:flex;flex:0 0 auto;gap:5px}
+.wdots i{display:block;width:9px;height:9px;background:var(--alert);border:2px solid #05070d}
+.wdots i:nth-child(2){background:var(--amber)}
+.wdots i:nth-child(3){background:var(--phosphor)}
+.wfile{
+  overflow:hidden;min-width:0;color:var(--console-muted);font-family:var(--body);
+  font-size:16px;line-height:1;letter-spacing:.02em;white-space:nowrap;text-overflow:ellipsis;
+}
+.wstat{
+  display:inline-flex;align-items:center;gap:5px;flex:0 0 auto;
+  color:var(--alert);font-family:var(--body);font-size:15px;line-height:1;letter-spacing:.03em;
+}
+.wstat i{display:block;width:7px;height:7px;background:var(--alert);box-shadow:0 0 8px var(--alert);animation:console-blink 1.2s steps(2) infinite}
+.wutils{display:flex;align-items:center;gap:4px;margin-inline-start:auto}
+.wubtn{
+  display:grid;place-items:center;width:24px;height:24px;padding:0;
+  border:1px solid var(--console-line);background:transparent;color:var(--paper);
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+}
+.wubtn svg{display:block;width:13px;height:13px}
+.wubtn[aria-pressed="true"] .off,.wubtn[aria-pressed="false"] .on{display:none}
+.wubtn[aria-pressed="false"]{color:var(--console-muted)}
+.wubtn:hover{border-color:var(--phosphor);color:var(--phosphor)}
+.wubtn:focus-visible{outline:2px solid var(--phosphor);outline-offset:2px}
+@keyframes console-blink{50%{opacity:.22}}
+
+.card.console-mode .statusbar{
+  grid-area:status;display:flex;align-items:center;gap:14px;min-width:0;
+  padding:0 12px;background:var(--console-2);border-top:2px solid var(--console-line);
+  color:var(--console-muted);font-family:var(--body);font-size:14px;line-height:1;letter-spacing:.04em;
+  direction:ltr;
+}
+.card.console-mode .statusbar span:last-child{margin-inline-start:auto;color:var(--phosphor)}
+
+.card.console-mode .avs{
+  grid-area:stage;position:relative;display:flex;align-items:flex-end;justify-content:center;
+  width:auto;margin:0;padding:54px 20px 16px;
+  background-color:var(--paper);
+  background-image:
+    linear-gradient(rgba(29,26,43,.055) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(29,26,43,.055) 1px,transparent 1px);
+  background-size:18px 18px;
+  border-right:3px solid var(--console-line);
+}
+.card.console-mode .avs::before{
+  content:"OP-01";position:absolute;top:12px;left:14px;z-index:3;
+  padding:1px 6px;border:2px solid var(--ink);background:var(--paper);color:var(--teal);
+  box-shadow:2px 2px 0 var(--ink);font-family:var(--body);font-size:14px;line-height:1.1;letter-spacing:.08em;
+}
+.card.console-mode .av{height:240px;filter:drop-shadow(5px 5px 0 rgba(29,26,43,.18))}
+.card.console-mode .av2{height:190px}
+.card.console-mode .bubble{
+  width:186px;min-height:66px;bottom:calc(100% - 30px);padding:10px 16px 16px;
+  font-size:13px;transform:translateX(-50%) rotate(-2deg);
+}
+.card.console-mode .bubble path{fill:var(--amber);stroke:var(--ink)}
+.card.console-mode .bubble svg{filter:drop-shadow(3px 3px 0 rgba(29,26,43,.35))}
+
+.card.console-mode .txt{
+  grid-area:editor;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;
+  width:auto;min-width:0;gap:7px;padding:18px 22px 16px;
+  background:var(--console);color:var(--paper);text-align:start;
+}
+.card.console-mode .kicker{
+  margin:0;color:var(--phosphor);font-family:var(--body);font-weight:400;font-size:18px;
+  line-height:1;letter-spacing:.01em;text-transform:none;
+}
+.card.console-mode .kicker::before{content:"> ";color:var(--phosphor)}
+.card.console-mode h1{
+  margin:0;color:var(--paper);font-family:var(--display);font-weight:700;font-size:40px;
+  line-height:.98;text-wrap:balance;text-shadow:3px 3px 0 #05070d;
+}
+.card.console-mode .lead{
+  margin:0;max-width:44ch;color:#b9c2d8;font-family:var(--body);font-size:19px;
+  line-height:1.12;text-wrap:pretty;
+}
+.card.console-mode .stats{
+  display:grid;grid-template-columns:auto 1fr;gap:0 14px;width:100%;margin:0;
+  padding-top:5px;border-top:1px dashed var(--console-line);
+  color:var(--console-muted);font-family:var(--body);font-size:17px;line-height:1.1;
+}
+.card.console-mode .stats dt{text-align:start;color:var(--console-muted)}
+.card.console-mode .stats dd{margin:0;text-align:end;color:var(--amber);font-family:var(--body);font-size:17px;line-height:1.1}
+
+.card.console-mode .actionrow{display:flex;align-items:flex-end;flex-wrap:wrap;gap:8px;width:100%;margin-top:2px}
+.card.console-mode .namefield{flex:1 1 220px;width:auto;max-width:none;margin:0;gap:4px}
+.card.console-mode .namefield label{
+  color:var(--phosphor);font-family:var(--body);font-weight:400;font-size:16px;
+  line-height:1;letter-spacing:.02em;text-transform:none;
+}
+.card.console-mode .namefield label::before{content:"> ";color:var(--phosphor)}
+.card.console-mode .namefield input{
+  border:2px solid var(--console-line);border-radius:0;background:#080b13;color:var(--paper);
+  box-shadow:inset 0 0 0 1px #000,3px 3px 0 #05070d;
+  font-family:var(--body);font-weight:400;font-size:21px;padding:9px 11px;
+  caret-color:var(--phosphor);
+}
+.card.console-mode .namefield input::placeholder{color:#5b647c}
+.card.console-mode .namefield input:focus-visible{outline:2px solid var(--phosphor);outline-offset:2px;border-color:var(--phosphor)}
+.card.console-mode .err{color:var(--alert);font-size:16px}
+.card.console-mode .btns{flex:0 1 auto;width:auto;margin:0;justify-content:flex-start;gap:8px;flex-wrap:wrap}
+.card.console-mode .btn{
+  min-width:0;padding:10px 14px;border:2px solid var(--ink);border-radius:0;
+  background:var(--paper);color:var(--ink);box-shadow:4px 4px 0 #05070d;
+  font-family:var(--display);font-size:16px;line-height:1.05;letter-spacing:.03em;
+}
+.card.console-mode .btn.primary{background:var(--accent);color:var(--ink)}
+.card.console-mode .btn.primary::before{content:"> ";font-family:var(--body);font-weight:400}
+.card.console-mode .btn:not(.primary){border-color:var(--console-line);background:var(--console-3);color:var(--paper)}
+.card.console-mode .btn:hover{filter:brightness(1.08)}
+.card.console-mode .btn:not(.primary):hover{border-color:var(--phosphor);color:var(--phosphor)}
+.card.console-mode .btn:active{transform:translate(3px,3px);box-shadow:1px 1px 0 #05070d}
+.card.console-mode .keys{
+  width:100%;max-width:none;margin:1px 0 0;padding:6px 9px;
+  border-left:3px solid var(--phosphor);background:#080b13;color:#b9c2d8;
+  font-family:var(--body);font-size:16px;line-height:1.08;
+}
+.card.console-mode .keys b{
+  border:2px solid var(--ink);background:var(--paper);color:var(--ink);
+  box-shadow:2px 2px 0 #05070d;font-family:var(--display);font-size:12px;
+}
+.card.console-mode .hire{
+  width:100%;margin:0;padding-top:6px;border-top:1px dashed var(--console-line);
+  justify-content:flex-start;gap:3px 6px;color:var(--console-muted);
+  font-family:var(--body);font-size:15px;line-height:1.08;text-align:start;
+}
+.card.console-mode .hire .mail{color:var(--phosphor);font-family:var(--body);font-size:15px;text-decoration:none}
+.card.console-mode .hire button{
+  border:1px solid var(--console-line);background:var(--console-3);color:var(--paper);
+  box-shadow:2px 2px 0 #05070d;font-family:var(--body);font-size:13px;padding:2px 6px;
+}
+.card.console-mode .hire button:hover{border-color:var(--phosphor);color:var(--phosphor)}
+.card.console-mode .social{justify-content:flex-start;gap:6px;width:100%;margin:0}
+.card.console-mode .social a{
+  padding:4px 8px;border:1px solid var(--console-line);background:var(--console-3);
+  color:var(--paper);box-shadow:2px 2px 0 #05070d;
+  font-family:var(--body);font-size:14px;line-height:1;
+}
+.card.console-mode .social a:hover{border-color:var(--ink);background:var(--accent);color:var(--ink)}
+.card.console-mode .social svg{width:14px;height:14px}
+.card.console-mode .lang{justify-content:flex-start;gap:4px;width:100%;margin:0}
+.card.console-mode .lang button{
+  border:1px solid var(--console-line);background:transparent;color:var(--console-muted);
+  box-shadow:none;font-family:var(--body);font-size:13px;line-height:1;padding:2px 7px;
+}
+.card.console-mode .lang button:hover{border-color:var(--phosphor);color:var(--paper)}
+.card.console-mode .lang button[aria-pressed="true"]{border-color:var(--ink);background:var(--phosphor);color:var(--ink);box-shadow:2px 2px 0 #05070d}
+.card.console-mode .btn:focus-visible,.card.console-mode .social a:focus-visible,
+.card.console-mode .lang button:focus-visible,.card.console-mode .hire button:focus-visible{
+  outline:2px solid var(--phosphor);outline-offset:2px;
+}
+
+[dir="rtl"] .card.console-mode{grid-template-columns:1.18fr .82fr;grid-template-areas:"win win" "editor stage" "status status";text-align:right}
+[dir="rtl"] .card.console-mode .avs{border-right:0;border-left:3px solid var(--console-line)}
+[dir="rtl"] .card.console-mode .avs::before{left:auto;right:14px}
+[dir="rtl"] .card.console-mode .bubble{transform:translateX(-50%) rotate(2deg)}
+[dir="rtl"] .card.console-mode .stats dd{text-align:start}
+
+@media (max-width:900px) and (min-width:560px){
+  .card.console-mode{grid-template-columns:minmax(210px,.72fr) minmax(0,1.28fr)}
+  .card.console-mode .avs{padding:46px 16px 14px}
+  .card.console-mode .av{height:210px}
+  .card.console-mode .av2{height:165px}
+  .card.console-mode .txt{padding:16px 18px 14px;gap:6px}
+  .card.console-mode h1{font-size:34px}
+  .card.console-mode .lead{font-size:18px}
+}
+
+@media (max-height:620px) and (min-width:560px){
+  .card.console-mode{grid-template-rows:34px auto 26px}
+  .card.console-mode .avs{padding:38px 14px 10px}
+  .card.console-mode .av{height:170px}
+  .card.console-mode .av2{height:135px}
+  .card.console-mode .txt{padding:12px 16px 12px;gap:5px}
+  .card.console-mode h1{font-size:30px}
+  .card.console-mode .lead{font-size:16px;line-height:1.06}
+  .card.console-mode .namefield input{font-size:18px;padding:7px 9px}
+  .card.console-mode .btn{font-size:14px;padding:8px 12px}
+  .card.console-mode .keys{font-size:14px;padding:5px 7px}
+  .card.console-mode .hire{font-size:13px;line-height:1.05;padding-top:4px}
+  .card.console-mode .hire .mail{font-size:13px}
+  .card.console-mode .social a{font-size:12px;padding:3px 7px}
+  .card.console-mode .lang button{font-size:11px;padding:2px 6px}
+  .card.console-mode .bubble{width:160px;min-height:48px;font-size:11px;padding:8px 12px 12px;bottom:calc(100% - 24px)}
+}
+
+@media (max-height:520px) and (min-width:560px){
+  .card.console-mode{grid-template-rows:34px auto;grid-template-areas:"win win" "stage editor"}
+  .card.console-mode .statusbar{display:none}
+  .card.console-mode .txt{padding:10px 14px 8px}
+  .card.console-mode .keys{font-size:13px;padding:4px 6px}
+  .card.console-mode .hire{font-size:12px;line-height:1.04}
+  .card.console-mode .hire .mail{font-size:12px}
+  .card.console-mode .social a{font-size:11px;padding:2px 6px}
+  .card.console-mode .lang button{font-size:10px;padding:2px 5px}
+  .card.console-mode .bubble{display:flex;width:148px;min-height:40px;font-size:10px;padding:6px 10px 10px;bottom:calc(100% - 22px)}
+}
+
+@media (min-width:560px) and (max-width:759px){
+  .card.console-mode .bubble{display:flex;width:160px;min-height:44px;font-size:11px;padding:7px 11px 11px;bottom:calc(100% - 24px)}
+}
+
+@media (max-width:559px){
+  .card.console-mode{
+    grid-template-columns:1fr;grid-template-rows:40px auto auto auto;
+    grid-template-areas:"win" "stage" "editor" "status";max-width:520px;
+  }
+  [dir="rtl"] .card.console-mode{
+    grid-template-columns:1fr;grid-template-rows:40px auto auto auto;
+    grid-template-areas:"win" "stage" "editor" "status";
+  }
+  [dir="rtl"] .card.console-mode .avs{border-left:0;border-bottom:3px solid var(--console-line)}
+  .card.console-mode .winbar{height:40px;gap:6px;padding:0 8px}
+  .card.console-mode .wfile{display:none}
+  .card.console-mode .wstat{font-size:14px}
+  .card.console-mode .wubtn{width:34px;height:34px}
+  .card.console-mode .wubtn svg{width:15px;height:15px}
+  .card.console-mode .avs{padding:44px 14px 12px;border-right:0;border-bottom:3px solid var(--console-line)}
+  .card.console-mode .av{height:170px}
+  .card.console-mode .av2{height:140px}
+  .card.console-mode .txt{padding:14px 16px 14px;gap:6px;justify-content:flex-start}
+  .card.console-mode h1{font-size:32px}
+  .card.console-mode .lead{font-size:18px}
+  .card.console-mode .actionrow{flex-direction:column;align-items:stretch}
+  .card.console-mode .namefield{flex:1 1 auto}
+  .card.console-mode .btns{width:100%;justify-content:flex-start}
+  .card.console-mode .btn{flex:1 1 auto;min-width:0}
+  .card.console-mode .statusbar{height:26px}
+}
+
+@media (max-width:559px) and (max-height:700px){
+  .card.console-mode{grid-template-rows:40px auto auto;grid-template-areas:"win" "stage" "editor"}
+  [dir="rtl"] .card.console-mode{grid-template-rows:40px auto auto;grid-template-areas:"win" "stage" "editor"}
+  .card.console-mode .statusbar{display:none}
+  .card.console-mode .avs{padding:34px 12px 8px}
+  .card.console-mode .av{height:130px}
+  .card.console-mode .av2{height:105px}
+  .card.console-mode .bubble{width:160px;min-height:39px;font-size:11px;padding:6px 10px 10px;bottom:calc(100% - 24px);transform:translateX(-50%)}
+  .card.console-mode .txt{padding:11px 14px 12px;gap:5px}
+  .card.console-mode h1{font-size:28px}
+  .card.console-mode .lead{font-size:16px;line-height:1.06}
+  .card.console-mode .namefield label{font-size:14px}
+  .card.console-mode .namefield input{font-size:17px;padding:6px 8px}
+  .card.console-mode .btn{font-size:14px;padding:8px 10px}
+  .card.console-mode .keys{font-size:14px;padding:5px 7px}
+  .card.console-mode .hire{font-size:13px;line-height:1.05;padding-top:4px}
+  .card.console-mode .hire .mail{font-size:13px}
+  .card.console-mode .social a{font-size:12px;padding:3px 6px}
+  .card.console-mode .lang button{font-size:11px;padding:2px 5px}
+}
+
+@media (max-width:559px) and (min-height:701px) and (max-height:900px){
+  .card.console-mode .avs{padding:38px 12px 10px}
+  .card.console-mode .av{height:150px}
+  .card.console-mode .av2{height:120px}
+  .card.console-mode .bubble{width:170px;min-height:50px;font-size:12px;padding:8px 12px 12px}
+  .card.console-mode .txt{padding:12px 16px 12px;gap:5px}
+  .card.console-mode h1{font-size:30px}
+  .card.console-mode .lead{font-size:17px;line-height:1.08}
+  .card.console-mode .namefield input{font-size:18px;padding:7px 9px}
+  .card.console-mode .btn{font-size:15px;padding:9px 12px}
+  .card.console-mode .keys{font-size:14px;padding:5px 7px}
+  .card.console-mode .hire{font-size:14px;line-height:1.06;padding-top:4px}
+  .card.console-mode .hire .mail{font-size:14px}
+  .card.console-mode .social a{font-size:13px;padding:3px 7px}
+  .card.console-mode .lang button{font-size:12px;padding:2px 6px}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .card.console-mode .wstat i{animation:none}
+}
+
+/* ============================================================
+   SHARED MENU CONSOLE: SPLASH, STORY, PAUSE, SELECT, RESULTS
+   The window chrome and cream/terminal split now belong to every
+   menu screen. Content panels simply replace the title's form row
+   with their own stack of terminal controls.
+   ============================================================ */
+
+/* The title uses a side-by-side form row; every other screen lets
+   its buttons sit directly in the editor column. */
+.card.console-mode.social-mode:not(.enter-mode){max-width:900px}
+.card.console-mode:not(.enter-mode) .actionrow{display:contents}
+.card.console-mode:not(.enter-mode) .btns{width:100%;justify-content:flex-start;margin:2px 0 0;gap:8px}
+.card.console-mode:not(.enter-mode) .btn{flex:0 1 auto;min-width:0}
+.card.console-mode:not(.enter-mode) h1{font-size:clamp(28px,4vw,36px)}
+.card.console-mode.select-mode h1{font-size:clamp(26px,3.6vw,30px)}
+.card.console-mode:not(.enter-mode) .stats{font-size:16px;gap:1px 12px}
+.card.console-mode:not(.enter-mode) .stats dd{font-size:16px}
+.card.console-mode .stats:empty,
+.card.console-mode .legend:empty{display:none}
+
+/* A result / story note reads as a highlighted terminal line. */
+.card.console-mode .note{
+  width:100%;max-width:46ch;margin:1px 0 0;padding:9px 11px;
+  border:2px solid var(--console-line);border-left:4px solid var(--amber);
+  background:#080b13;color:#ded8ca;box-shadow:3px 3px 0 #05070d;
+  font-family:var(--body);font-size:17px;line-height:1.12;
+  transform:none;
+}
+
+/* Pause legend becomes a row of compact status chips. */
+.card.console-mode .legend{
+  display:flex;flex-wrap:wrap;justify-content:flex-start;gap:5px;
+  width:100%;margin:0;padding:6px 8px;
+  border:1px solid var(--console-line);background:#080b13;
+  color:var(--console-muted);font-family:var(--body);font-size:15px;line-height:1.1;
+}
+.card.console-mode .legend span{
+  display:inline-flex;align-items:center;gap:5px;padding:2px 6px;
+  border:1px solid var(--console-line);background:var(--console-3);
+}
+.card.console-mode .legend img{width:auto;height:17px;filter:drop-shadow(1px 1px 0 #000)}
+
+/* Small stage labels tell you which menu mode you are looking at. */
+.card.console-mode.splash-mode .avs::before{content:"BOOT";color:var(--phosphor)}
+.card.console-mode.pause-mode .avs::before{content:"PAUSED";color:var(--amber)}
+.card.console-mode.select-mode .avs::before{content:"LEVELS";color:var(--phosphor)}
+.card.console-mode.social-mode:not(.enter-mode) .avs::before{content:"RESULT";color:var(--amber)}
+
+/* Level select: a compact terminal directory. */
+.card.console-mode.select-mode .txt{gap:5px;padding:16px 20px 14px}
+.card.console-mode.select-mode .lead{max-width:42ch}
+.card.console-mode.select-mode .btns{
+  display:grid;grid-template-columns:1fr 1fr;gap:5px;
+  width:100%;margin-top:4px;
+}
+.card.console-mode.select-mode .btn{
+  min-width:0;padding:7px 8px;text-align:start;
+  box-shadow:2px 2px 0 #05070d;font-size:13px;line-height:1.08;
+}
+
+/* Pause keeps the editor a little tighter so the legend, hints and
+   hire line all fit on a phone without a scrollbar. */
+.card.console-mode.pause-mode .txt{gap:5px}
+
+/* Story panels turn the cream bay into a framed REC monitor. */
+.card.console-mode.scene-mode .avs{
+  display:flex;align-items:center;justify-content:center;
+  padding:42px 18px 18px;
+}
+.card.console-mode.scene-mode .avs::before{content:"REC ●";color:var(--alert)}
+.card.console-mode.scene-mode .avstack{display:none}
+.card.console-mode.scene-mode .scene{
+  display:block;width:100%;max-width:100%;aspect-ratio:2/1;
+  border:3px solid var(--ink);background:#3b3550;
+  box-shadow:5px 5px 0 #05070d;image-rendering:pixelated;
+}
+.card.console-mode.scene-mode .txt{justify-content:center}
+.card.console-mode.scene-mode .lead{max-width:40ch}
+
+@media (min-width:560px){
+  .card.console-mode.scene-mode{
+    grid-template-columns:minmax(300px,1.05fr) minmax(0,.95fr);
+  }
+  [dir="rtl"] .card.console-mode.scene-mode{
+    grid-template-columns:.95fr 1.05fr;
+    grid-template-areas:"win win" "editor stage" "status status";
+  }
+}
+
+@media (max-width:559px){
+  .card.console-mode.scene-mode .avs{padding:38px 12px 12px}
+  .card.console-mode.select-mode .txt{padding:12px 16px 14px}
+  .card.console-mode .note{font-size:16px}
+  .card.console-mode .legend{font-size:13px;gap:4px;padding:5px 6px}
+  .card.console-mode .legend span{padding:2px 5px}
+  .card.console-mode .legend img{height:15px}
+}
+
+@media (max-height:620px) and (min-width:560px){
+  .card.console-mode.scene-mode .avs{padding:38px 14px 12px}
+  .card.console-mode.scene-mode .scene{box-shadow:3px 3px 0 #05070d}
+}
+
+@media (max-height:520px) and (min-width:560px){
+  .card.console-mode:not(.enter-mode) .stats{font-size:15px}
+  .card.console-mode:not(.enter-mode) .stats dd{font-size:15px}
+  .card.console-mode .note{font-size:15px;padding:7px 9px}
+  .card.console-mode .legend{font-size:13px;padding:4px 6px}
+  .card.console-mode .legend img{height:14px}
+}
+
+/* The win / clear screen has four stat rows, a hire line and social
+   links, so it gets its own compact layout on short desktop windows. */
+@media (max-height:620px) and (min-width:560px){
+  .card.console-mode.social-mode:not(.enter-mode) .txt{gap:3px;padding:10px 14px 8px}
+  .card.console-mode.social-mode:not(.enter-mode) h1{font-size:28px}
+  .card.console-mode.social-mode:not(.enter-mode) .lead{font-size:15px;line-height:1.04}
+  .card.console-mode.social-mode:not(.enter-mode) .stats{font-size:14px;gap:0 10px}
+  .card.console-mode.social-mode:not(.enter-mode) .stats dd{font-size:14px}
+  .card.console-mode.social-mode:not(.enter-mode) .btn{font-size:13px;padding:7px 10px}
+  .card.console-mode.social-mode:not(.enter-mode) .hire{font-size:11px;line-height:1.02;padding-top:3px}
+  .card.console-mode.social-mode:not(.enter-mode) .hire .mail{font-size:11px}
+  .card.console-mode.social-mode:not(.enter-mode) .social a{font-size:10px;padding:2px 5px}
+  .card.console-mode.social-mode:not(.enter-mode) .lang button{font-size:9px;padding:1px 4px}
+}
+
+/* The title carries the most controls (form, stats, keys, hire,
+   social, language), so it gets one extra compact step on short
+   screens. This keeps the console frame fully on-screen in RTL too. */
+@media (min-width:560px) and (max-height:520px){
+  .card.console-mode.enter-mode .avs{padding:32px 12px 8px}
+  .card.console-mode.enter-mode .av{height:160px}
+  .card.console-mode.enter-mode .av2{height:130px}
+  .card.console-mode.enter-mode .txt{padding:8px 12px 6px;gap:3px}
+  .card.console-mode.enter-mode h1{font-size:26px}
+  .card.console-mode.enter-mode .lead{font-size:14px;line-height:1.03}
+  .card.console-mode.enter-mode .stats{font-size:14px;gap:0 10px}
+  .card.console-mode.enter-mode .stats dd{font-size:14px}
+  .card.console-mode.enter-mode .namefield label{font-size:13px}
+  .card.console-mode.enter-mode .namefield input{font-size:16px;padding:5px 8px}
+  .card.console-mode.enter-mode .btn{font-size:13px;padding:7px 10px}
+  .card.console-mode.enter-mode .keys{font-size:12px;line-height:1.02;padding:4px 6px}
+  .card.console-mode.enter-mode .hire{font-size:11px;line-height:1.02;padding-top:3px}
+  .card.console-mode.enter-mode .hire .mail{font-size:11px}
+  .card.console-mode.enter-mode .social a{font-size:10px;padding:2px 5px}
+  .card.console-mode.enter-mode .lang button{font-size:9px;padding:1px 4px}
+  .card.console-mode.enter-mode .bubble{
+    width:140px;min-height:34px;font-size:10px;padding:5px 8px 8px;
+    bottom:calc(100% - 20px);
+  }
+}
+
+@media (max-width:559px) and (max-height:700px){
+  .card.console-mode.enter-mode .avs{padding:30px 12px 7px}
+  .card.console-mode.enter-mode .av{height:120px}
+  .card.console-mode.enter-mode .av2{height:100px}
+  .card.console-mode.enter-mode .txt{padding:10px 14px 11px;gap:4px}
+  .card.console-mode.enter-mode .lead{font-size:15px;line-height:1.04}
+  .card.console-mode.enter-mode .stats{font-size:14px;gap:0 10px}
+  .card.console-mode.enter-mode .stats dd{font-size:14px}
+  .card.console-mode.enter-mode .namefield input{font-size:16px;padding:5px 8px}
+  .card.console-mode.enter-mode .btn{font-size:13px;padding:7px 9px}
+  .card.console-mode.enter-mode .keys{font-size:12px;line-height:1.04;padding:4px 6px}
+  .card.console-mode.enter-mode .hire{font-size:12px;line-height:1.04}
+  .card.console-mode.enter-mode .hire .mail{font-size:12px}
+  .card.console-mode.enter-mode .social a{font-size:11px;padding:2px 5px}
+  .card.console-mode.enter-mode .lang button{font-size:10px;padding:2px 4px}
+  .card.console-mode.enter-mode .bubble{
+    width:156px;min-height:36px;font-size:10.5px;padding:5px 9px 9px;
+    bottom:calc(100% - 22px);
+  }
+}
