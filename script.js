@@ -1842,6 +1842,7 @@ function showScreen(o) {
   cardEl.classList.toggle("select-mode", (o.buttons || []).length > 6);
   cardEl.classList.toggle("social-mode", !!o.social);
   cardEl.classList.toggle("splash-mode", !!o.splash);
+  cardEl.classList.toggle("result-mode", !o.nameInput && !o.scene && !o.story && (!!o.social || (o.stats || []).length > 0));
   sceneC.hidden = !o.scene;
   if (o.av) document.getElementById("sAv").src = (AV[o.av + "Big"] || AV[o.av]).src;
   const a2 = document.getElementById("sAv2"); a2.hidden = !o.ela; if (o.ela) a2.src = (AV[o.ela + "Big"] || AV[o.ela]).src;
@@ -1871,8 +1872,8 @@ function showScreen(o) {
   });
   document.getElementById("sKeys").innerHTML = o.keys || "";
   const sys = document.getElementById("sSys"), inp = document.getElementById("sInput");
-  if (sys) sys.textContent = o.splash ? "SYS://BOOT" : o.scene ? "SYS://STORY" : o.nameInput ? "SYS://TITLE" : o.legend ? "SYS://PAUSED" : (o.buttons || []).length > 6 ? "SYS://LEVELS" : (o.social || (o.stats || []).length) ? "SYS://RESULT" : "SYS://MENU";
-  if (inp) inp.textContent = o.legend ? "INPUT: PAUSED" : o.scene ? "INPUT: STORY" : "INPUT: READY";
+  if (sys) sys.textContent = o.splash ? "SYS://BOOT" : (o.scene || o.story) ? "SYS://STORY" : o.nameInput ? "SYS://TITLE" : o.legend ? "SYS://PAUSED" : (o.buttons || []).length > 6 ? "SYS://LEVELS" : (o.social || (o.stats || []).length) ? "SYS://RESULT" : "SYS://MENU";
+  if (inp) inp.textContent = o.legend ? "INPUT: PAUSED" : (o.scene || o.story) ? "INPUT: STORY" : "INPUT: READY";
   screenEl.hidden = false; util.style.visibility = "hidden";
   cardEl.style.animation = "none"; void cardEl.offsetWidth; cardEl.style.animation = "";
   if (o.scene) { sceneSize(); scene = { idx: o.scene - 1, t: 0 }; } else scene = null;
@@ -1978,7 +1979,7 @@ function showStory(i) {
     const st = storyT(i);
     showScreen({ scene: i + 1, kicker: st.kicker, title: st.title, lead: st.lead, buttons: [{ label: T("İleri"), fn: () => showStory(i + 1) }, { label: T("Hikâyeyi geç"), fn: () => startLevel(0) }] });
   } else {
-    showScreen({ av: "lapTalk", ela: "elaHelp", elaFlip: true, kicker: T("Cuma · 18:01"), title: T("Sıra sende, {ad}"), lead: T("Kahveni bitir. Bug'ları ez, kutulardan güç topla, veri merkezine in ve Ela'yı kurtar."), buttons: [{ label: T("Göreve başla"), fn: () => startLevel(0) }], keys: keysHint() });
+    showScreen({ av: "lapTalk", ela: "elaHelp", elaFlip: true, story: true, kicker: T("Cuma · 18:01"), title: T("Sıra sende, {ad}"), lead: T("Kahveni bitir. Bug'ları ez, kutulardan güç topla, veri merkezine in ve Ela'yı kurtar."), buttons: [{ label: T("Göreve başla"), fn: () => startLevel(0) }], keys: keysHint() });
   }
 }
 
