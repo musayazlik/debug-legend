@@ -1377,16 +1377,16 @@ function updNpcs(dt) {
     n.talk -= dt;
   }
 }
-function drawBubble(cx, bottom, str, bg = "#fff4e0", fg = INK) {
+function drawBubble(cx, bottom, str) {
   const size = 5.4;
   ctx.font = `700 ${Math.max(1, Math.round(size * SD))}px "Pixelify Sans", monospace`;
   const tw = ctx.measureText(str).width / SD, bw = Math.min(tw + 10, viewW - 16), bh = 12;
   let x = cx - bw / 2; x = Math.max(camX + 6, Math.min(x, camX + viewW - bw - 6));
   const y = bottom - bh - 4;
-  rect(x, y, bw, bh, INK); rect(x + 1, y + 1, bw - 2, bh - 2, bg);
+  rect(x, y, bw, bh, INK); rect(x + 1, y + 1, bw - 2, bh - 2, "#fff4e0");
   const tx = Math.max(x + 4, Math.min(cx - 2, x + bw - 8));
-  rect(tx, y + bh, 4, 2, INK); rect(tx + 1, y + bh - 1, 2, 2, bg); rect(tx + 1, y + bh + 2, 2, 1, INK);
-  fitText(str, x + bw / 2, y + 3, size, fg, bw - 8);
+  rect(tx, y + bh, 4, 2, INK); rect(tx + 1, y + bh - 1, 2, 2, "#fff4e0"); rect(tx + 1, y + bh + 2, 2, 1, INK);
+  fitText(str, x + bw / 2, y + 3, size, INK, bw - 8);
 }
 function drawNpcs() {
   for (const n of L.npcs) {
@@ -1497,7 +1497,7 @@ function drawEla() {
 }
 
 /* ---------- finale: the PHP Monster's UFO ---------- */
-const UFO = { in: 4.4, beam: [10, 14.8], lift: [10.6, 14.4], out: 16.8, end: 19.6, w: 84, hover: 74 };
+const UFO = { in: 4.4, beam: [10, 14.8], lift: [10.6, 14.4], out: 18.4, end: 21, w: 84, hover: 88 };
 // [from, to, speaker, line]; "cap" is the one who was in the cage
 const UFO_LINES = [
   [.2, 2.3, "cap", "Teşekkürler {ad}! Prod yeniden yeşil!"],
@@ -1507,7 +1507,7 @@ const UFO_LINES = [
   [9.5, 12, "php", "{0} artık benim legacy projemde çalışacak!"],
   [12.2, 14.3, "cap", "İmdat! Her yer $değişken dolu!"],
   [14.6, 16.3, "hero", "{0}'yı bırak, PHP!"],
-  [16.5, 18.8, "php", "Haftaya Cuma görüşürüz! Muhahaha!"],
+  [16.4, 18.4, "php", "Haftaya Cuma görüşürüz! Muhahaha!"],
 ];
 const UFO_CUES = [
   [UFO.in, () => { shake = .5; [880, 660, 880, 660, 880, 660].forEach((f, i) => tone(f, f * .92, .18, "sawtooth", .035, i * .2)); }],
@@ -1530,7 +1530,7 @@ function ufoPos(t) {
 const ufoH = () => UFO.w * (AV.phpUfo.naturalHeight / AV.phpUfo.naturalWidth || .91);
 function capLift(t) {
   const k = Math.min(1, (t - UFO.lift[0]) / (UFO.lift[1] - UFO.lift[0])), e = k * k * (3 - 2 * k);
-  return { x: L.cageX * TS + 16 + Math.sin(t * 5) * 3 * (1 - k), y: 206 - 84 * e, s: k > .7 ? 1 - (k - .7) / .3 * .75 : 1 };
+  return { x: L.cageX * TS + 16 + Math.sin(t * 5) * 3 * (1 - k), y: 206 - 78 * e, s: k > .7 ? 1 - (k - .7) / .3 * .75 : 1 };
 }
 function drawAbduction() {
   const ep = L.endP; if (!ep || ep.phase !== "ufo") return;
@@ -1570,11 +1570,11 @@ function drawUfoTalk() {
   if (line) {
     const who = line[2], str = fill(T(line[3], capName()));
     let x = L.cageX * TS + 16, y = 166;
-    // the monster talks from the UFO's left side, clear of the corner buttons, even while it flies in or off
-    if (who === "php") { const u = ufoPos(t); if (u) { x = Math.min(u.x, x + 30) - 50; y = Math.max(u.y, UFO.hover) - 6; } }
+    // above the UFO like everyone else; pinned to its hover spot so it stays put while the UFO flies in or off
+    if (who === "php") { const u = ufoPos(t); if (u) x = Math.min(u.x, x + 30); y = UFO.hover - ufoH() / 2 + 2; }
     else if (who === "hero") { x = PL.x + PL.w / 2; y = PL.y + PL.h - 40; }
     else if (t >= UFO.lift[0]) { const c = capLift(t); x = c.x; y = c.y - 38 * c.s; }
-    drawBubble(x, y, str, who === "php" ? INK : "#fff4e0", who === "php" ? "#6dff9e" : INK);
+    drawBubble(x, y, str);
   }
   // letterbox + skip hint
   const bar = 12 * Math.max(0, Math.min(1, t / .6, (UFO.end - t) / .4));
@@ -2152,7 +2152,7 @@ function showClear() {
       av: swapped() ? "elaShock" : "lapWow", ela: "phpUfo", kicker: T("Devamı gelecek..."),
       title: T("{0} yine kaçırıldı!", capName()),
       lead: T("PHP Canavarı {0}'yı uzay gemisine aldı ve ortadan kayboldu. Yeni bölümler için haftaya Cuma'yı bekle ve {0}'yı PHP Canavarı'ndan kurtar!", capName()),
-      note: T("Yeni bölümler haftaya Cuma geliyor. Debugger'ını hazır tut, {ad}!"),
+      note: T("Php2Sell açığı üzerinde çalışan herkese kolaylıklar dileriz! Haftaya Cuma görüşürüz, {ad}."),
       stats: [[T("Toplanan kahve"), String(coffee)], [T("Yenilen bug"), String(bugs)], [T("Skor"), pad6(score)], [T("En iyi"), pad6(best)]],
       buttons: [{ label: T("Tekrar oyna"), fn: () => newRun(0) }],
       hire: T("Ekibine Full-Stack geliştirici mi arıyorsun, yoksa bir projen mi var? Tam zamanlı ve freelance işler için:"),
