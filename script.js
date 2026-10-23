@@ -1484,8 +1484,7 @@ function drawEla() {
   if (u >= UFO.lift[0]) return; // drawn by drawAbduction while in the beam
   if (!free) {
     drawHuman(ctx, sw ? "hurt" : "elaHelp", DX(x), DY(base), SD, -1, sw ? 31 : 30);
-    rect(x - 18, base - 64, 36, 13, INK); rect(x - 17, base - 63, 34, 11, "#fff4e0");
-    text(T("İmdat!"), x, base - 62, 6.5, INK, "center");
+    drawBubble(x, base - 48, T("İmdat!"));
   } else if (u >= UFO.in) {
     const shiver = Math.sin(time * 40) * .6;
     drawHuman(ctx, sw ? "hurt" : "elaScared", DX(x + shiver), DY(base), SD, -1, sw ? 31 : 30);
