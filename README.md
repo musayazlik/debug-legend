@@ -2,7 +2,7 @@
 
 A retro pixel-art platformer that turns debugging into an epic. Ela pushed to production, the bug monsters kidnapped her, and it is up to you to grab the debugger, squash bugs, collect power-ups, and fight your way down into the data center to rescue her.
 
-**Play it live:** https://debug-destani.vercel.app
+**Play it live:** https://debug-destani.musayazlik.com
 
 ## Features
 
@@ -36,6 +36,7 @@ index.html   Page shell, HUD, menus, and touch controls
 style.css    Pixel-art UI and responsive layout
 script.js    Game engine, levels, audio, and rendering
 i18n.js      Translations for tr, en, de, ar, and zh
+og-image.png Link preview image (1200 × 630) for LinkedIn, X, and others
 ```
 
 ## Run locally
