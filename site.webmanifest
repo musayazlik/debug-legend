@@ -1,0 +1,14 @@
+{
+  "name": "Debug Destanı",
+  "short_name": "Debug Destanı",
+  "description": "Prod çöktü, Ela kaçırıldı! Tarayıcıda oynanan ücretsiz retro piksel platform oyunu.",
+  "lang": "tr",
+  "start_url": "/",
+  "display": "fullscreen",
+  "background_color": "#0d1019",
+  "theme_color": "#0d1019",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
